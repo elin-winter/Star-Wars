@@ -76,7 +76,7 @@ durabilidadTotal = sum . map durabilidad
 
 -- Funcion 2
 naveDespuesAtaque :: Nave -> Nave -> Nave
-naveDespuesAtaque atacadora victima = reducirDurabilidad (poderEspecial atacadora atacadora) (poderEspecial victima victima)
+naveDespuesAtaque atacadora victima = reducirDurabilidad (activarPoder atacadora) (activarPoder victima)
 
 reducirDurabilidad :: Nave -> Nave -> Nave
 reducirDurabilidad atacadora victima
@@ -89,11 +89,26 @@ dannioRecibido atacadora victima = cambiarDurabilidad (calcularDannio atacadora 
 calcularDannio :: Nave -> Nave -> Number
 calcularDannio atacadora victima = max 0 (ataque atacadora - escudo victima)
 
+activarPoder :: PoderEspecial
+activarPoder nave = poderEspecial nave nave
+
 -- Funcion 3
 fueraDeCombate :: Nave -> Bool
-fueraDeCombate nave = durabilidad nave == 0
+fueraDeCombate = (== 0) . durabilidad 
 
 -- Funcion 4
+{-
+
+misionSorpresa :: Nave -> Flota -> Estrategia -> Flota
+misionSorpresa _ [] _ = []
+misionSorpresa nave (x : xs) estrategia
+    | estrategia x = ataqueNave x nave : misionSorpresa nave xs estrategia
+    |otherwise = x : misionSorpresa nave xs estrategia
+
+-}
+
+
+
 misionSorpresa :: Flota -> Nave -> Estrategia -> Flota
 misionSorpresa flota nave estrategia = map (naveDespuesAtaque nave) (navesParaAtacar flota estrategia) 
 
@@ -104,7 +119,7 @@ navesDebiles :: Estrategia
 navesDebiles = (<200) . escudo
 
 navesPeligrosas :: Ataque -> Estrategia
-navesPeligrosas delta = (<delta) . ataque
+navesPeligrosas delta = (>delta) . ataque
 
 navesFueraCombate :: Nave -> Estrategia
 navesFueraCombate atacadora = fueraDeCombate . naveDespuesAtaque atacadora
@@ -148,7 +163,7 @@ Como requiere un filtro previo, hay casos en donde se podría llevar adelante, o
 Si una strategia fuera elegir todas las naves que tuvieran de ataque 50, nunca terminaría 
 de evaluar la condición y no podría realizar la misión. 
 
-Se debe al hecho de que Haskell utiliza evaluación difeerida (lazy evaluation), por loq ue primero tiene
+Se debe al hecho de que Haskell utiliza evaluación diferida (lazy evaluation), por lo que primero tiene
 en cuenta la función a realizar y despues los parametros que utilizará. 
 
 En nuestro caso particular, todas las estrategias que modelamos no podrían llevar adelante
